@@ -650,11 +650,20 @@
             const cityFilter = document.getElementById('cityFilter').value;
             const searchInput = document.getElementById('searchInput').value.toLowerCase();
 
+            // Debug: log what we're filtering
+            console.log('Filter selected:', typeFilter);
+            console.log('Sample place Type:', allPlaces[0]?.Type, typeof allPlaces[0]?.Type);
+
             filteredPlaces = allPlaces.filter(place => {
                 // Case-insensitive type matching with trimming
                 const placeType = (place.Type || '').trim().toLowerCase();
                 const filterType = typeFilter.toLowerCase();
                 const matchesType = typeFilter === 'all' || placeType === filterType;
+
+                // Debug first place
+                if (allPlaces.indexOf(place) === 0) {
+                    console.log('Comparing:', `"${placeType}"`, 'vs', `"${filterType}"`, '=', matchesType);
+                }
 
                 const matchesCity = cityFilter === 'all' || place.City === cityFilter;
                 const matchesSearch = searchInput === '' ||
@@ -665,6 +674,7 @@
                 return matchesType && matchesCity && matchesSearch;
             });
 
+            console.log('Filtered results:', filteredPlaces.length);
             displayPlaces();
         }
 
