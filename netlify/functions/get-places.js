@@ -48,17 +48,20 @@ exports.handler = async function(event, context) {
     const data = await response.json();
 
     // Transform the data to a simpler format
-    const places = data.records.map(record => ({
-      id: record.id,
-      Name: record.fields.Name || '',
-      Type: record.fields.Type || '',
-      City: record.fields.City || '',
-      Description: record.fields.Description || '',
-      GoogleMapsLink: record.fields['Google Maps Link'] || record.fields.GoogleMapsLink || '',
-      Notes: record.fields.Notes || '',
-      AddedBy: record.fields['Added By'] || record.fields.AddedBy || '',
-      Photo: record.fields.Photo && record.fields.Photo[0] ? record.fields.Photo[0].url : null
-    }));
+    // Only include APPROVED places
+    const places = data.records
+      .filter(record => record.fields.Approved === true) // Only approved places
+      .map(record => ({
+        id: record.id,
+        Name: record.fields.Name || '',
+        Type: record.fields.Type || '',
+        City: record.fields.City || '',
+        Description: record.fields.Description || '',
+        GoogleMapsLink: record.fields['Google Maps Link'] || record.fields.GoogleMapsLink || '',
+        Notes: record.fields.Notes || '',
+        AddedBy: record.fields['Added By'] || record.fields.AddedBy || '',
+        Photo: record.fields.Photo && record.fields.Photo[0] ? record.fields.Photo[0].url : null
+      }));
 
     // Return the data
     return {
