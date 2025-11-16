@@ -54,9 +54,12 @@ exports.handler = async function(event, context) {
       .map(record => {
         // Handle single-select fields which can be objects or strings
         const typeField = record.fields.Type;
-        const typeValue = typeof typeField === 'object' && typeField !== null
+        let typeValue = typeof typeField === 'object' && typeField !== null
           ? typeField.name || ''
           : typeField || '';
+
+        // Strip emojis from type value (keep only text)
+        typeValue = typeValue.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, '').trim();
 
         return {
           id: record.id,
