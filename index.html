@@ -322,6 +322,49 @@
             border-color: var(--primary-color);
         }
 
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+
+        .search-results.active {
+            display: block;
+        }
+
+        .search-result-item {
+            padding: 0.75rem;
+            cursor: pointer;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-item:hover {
+            background-color: var(--bg-light);
+        }
+
+        .search-result-item strong {
+            display: block;
+            color: var(--text-dark);
+        }
+
+        .search-result-item small {
+            color: var(--text-light);
+            font-size: 0.85rem;
+        }
+
         .place-preview {
             background: var(--bg-light);
             padding: 1rem;
@@ -479,13 +522,14 @@
             <h2>Add a New Place</h2>
 
             <div class="search-input-wrapper">
-                <input type="text" id="googlePlaceSearch" placeholder="Search for a place on Google Maps...">
+                <input type="text" id="placeSearchInput" placeholder="Search for a place (e.g., restaurant name + city)..." autocomplete="off">
+                <div id="searchResults" class="search-results"></div>
             </div>
 
             <div id="placePreview" class="place-preview">
                 <h3 id="previewName"></h3>
                 <p id="previewAddress"></p>
-                <p id="previewRating"></p>
+                <p id="previewType"></p>
             </div>
 
             <form id="addPlaceForm">
@@ -537,16 +581,6 @@
         </div>
     </div>
 
-    <!-- Google Places API -->
-    <script>
-        // IMPORTANT: Replace with your Google Maps API key
-        // Get one at: https://console.cloud.google.com/google/maps-apis
-        const GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY';
-    </script>
-    <script async defer
-        src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places&callback=initGooglePlaces">
-    </script>
-
     <script>
         // Type to emoji mapping
         const typeEmojis = {
@@ -576,6 +610,9 @@
 
                 const data = await response.json();
                 allPlaces = data.places || [];
+
+                // Debug: log the actual Type values from Airtable
+                console.log('Types from Airtable:', [...new Set(allPlaces.map(p => p.Type))]);
 
                 populateCityFilter();
                 filterPlaces();
@@ -613,11 +650,20 @@
             const cityFilter = document.getElementById('cityFilter').value;
             const searchInput = document.getElementById('searchInput').value.toLowerCase();
 
+            // Debug: log what we're filtering
+            console.log('Filter selected:', typeFilter);
+            console.log('Sample place Type:', allPlaces[0]?.Type, typeof allPlaces[0]?.Type);
+
             filteredPlaces = allPlaces.filter(place => {
                 // Case-insensitive type matching with trimming
                 const placeType = (place.Type || '').trim().toLowerCase();
                 const filterType = typeFilter.toLowerCase();
                 const matchesType = typeFilter === 'all' || placeType === filterType;
+
+                // Debug first place
+                if (allPlaces.indexOf(place) === 0) {
+                    console.log('Comparing:', `"${placeType}"`, 'vs', `"${filterType}"`, '=', matchesType);
+                }
 
                 const matchesCity = cityFilter === 'all' || place.City === cityFilter;
                 const matchesSearch = searchInput === '' ||
@@ -628,6 +674,7 @@
                 return matchesType && matchesCity && matchesSearch;
             });
 
+            console.log('Filtered results:', filteredPlaces.length);
             displayPlaces();
         }
 
@@ -686,65 +733,140 @@
             }).join('');
         }
 
-        // Google Places Autocomplete
-        let autocomplete;
+        // Photon API Search (Free, no API key needed)
+        let searchTimeout = null;
         let selectedPlace = null;
 
-        function initGooglePlaces() {
-            const input = document.getElementById('googlePlaceSearch');
-            if (input && window.google && window.google.maps) {
-                autocomplete = new google.maps.places.Autocomplete(input, {
-                    types: ['establishment'],
-                    fields: ['name', 'formatted_address', 'geometry', 'place_id', 'rating', 'types', 'url']
-                });
+        // Debounced search to respect Photon's 1 request/second limit
+        function setupPlaceSearch() {
+            const input = document.getElementById('placeSearchInput');
+            const resultsDiv = document.getElementById('searchResults');
 
-                autocomplete.addListener('place_changed', onPlaceSelected);
+            input.addEventListener('input', (e) => {
+                const query = e.target.value.trim();
+
+                // Clear previous timeout
+                if (searchTimeout) clearTimeout(searchTimeout);
+
+                // Hide results if query is too short
+                if (query.length < 3) {
+                    resultsDiv.classList.remove('active');
+                    return;
+                }
+
+                // Debounce: wait 500ms after user stops typing
+                searchTimeout = setTimeout(() => searchPlaces(query), 500);
+            });
+
+            // Hide results when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.search-input-wrapper')) {
+                    resultsDiv.classList.remove('active');
+                }
+            });
+        }
+
+        async function searchPlaces(query) {
+            const resultsDiv = document.getElementById('searchResults');
+
+            try {
+                // Photon API - free geocoding service based on OpenStreetMap
+                const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&osm_tag=amenity:restaurant&osm_tag=amenity:cafe&osm_tag=amenity:bar&osm_tag=amenity:pub`;
+
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Search failed');
+
+                const data = await response.json();
+                displaySearchResults(data.features);
+            } catch (error) {
+                console.error('Search error:', error);
+                resultsDiv.innerHTML = '<div class="search-result-item"><small>Search temporarily unavailable</small></div>';
+                resultsDiv.classList.add('active');
             }
         }
 
-        function onPlaceSelected() {
-            const place = autocomplete.getPlace();
-            if (!place.geometry) {
+        function displaySearchResults(features) {
+            const resultsDiv = document.getElementById('searchResults');
+
+            if (!features || features.length === 0) {
+                resultsDiv.innerHTML = '<div class="search-result-item"><small>No places found. Try adding city name to your search.</small></div>';
+                resultsDiv.classList.add('active');
                 return;
             }
 
-            selectedPlace = place;
+            resultsDiv.innerHTML = features.map((feature, index) => {
+                const props = feature.properties;
+                const name = props.name || 'Unknown';
+                const city = props.city || props.town || props.village || '';
+                const country = props.country || '';
+                const street = props.street || '';
+                const houseNumber = props.housenumber || '';
+                const address = [street, houseNumber, city, country].filter(Boolean).join(', ');
+
+                return `
+                    <div class="search-result-item" onclick="selectPlace(${index})" data-feature='${JSON.stringify(feature).replace(/'/g, "&#39;")}'>
+                        <strong>${name}</strong>
+                        <small>${address}</small>
+                    </div>
+                `;
+            }).join('');
+
+            // Store features for selection
+            resultsDiv.dataset.features = JSON.stringify(features);
+            resultsDiv.classList.add('active');
+        }
+
+        function selectPlace(index) {
+            const resultsDiv = document.getElementById('searchResults');
+            const features = JSON.parse(resultsDiv.dataset.features || '[]');
+            const feature = features[index];
+
+            if (!feature) return;
+
+            const props = feature.properties;
+            const coords = feature.geometry.coordinates; // [lon, lat]
+
+            selectedPlace = feature;
+
+            // Extract place details
+            const name = props.name || '';
+            const city = props.city || props.town || props.village || '';
+            const country = props.country || '';
+            const street = props.street || '';
+            const houseNumber = props.housenumber || '';
+            const address = [street, houseNumber, city, country].filter(Boolean).join(', ');
 
             // Show preview
-            document.getElementById('previewName').textContent = place.name;
-            document.getElementById('previewAddress').textContent = place.formatted_address;
-            document.getElementById('previewRating').textContent = place.rating ? `Rating: ${place.rating}/5` : '';
+            document.getElementById('previewName').textContent = name;
+            document.getElementById('previewAddress').textContent = address;
+
+            // Detect type from OSM tags
+            const osmType = props.osm_value || '';
+            let detectedType = '';
+            if (osmType === 'cafe') detectedType = 'Cafe';
+            else if (osmType === 'bar' || osmType === 'pub') detectedType = 'Bar';
+            else if (osmType === 'restaurant') detectedType = 'Restaurant';
+
+            document.getElementById('previewType').textContent = detectedType ? `Type: ${detectedType}` : '';
             document.getElementById('placePreview').classList.add('active');
 
             // Auto-fill form fields
-            document.getElementById('placeName').value = place.name;
-            document.getElementById('placeMapsLink').value = place.url || `https://www.google.com/maps/place/?q=place_id:${place.place_id}`;
+            document.getElementById('placeName').value = name;
+            document.getElementById('placeCity').value = city;
 
-            // Extract city from address
-            const addressParts = place.formatted_address.split(',');
-            if (addressParts.length >= 2) {
-                // Usually city is the second-to-last part (before country/postal code)
-                const cityPart = addressParts[addressParts.length - 2].trim();
-                // Remove postal codes if present
-                const city = cityPart.replace(/\d{4,}/g, '').trim();
-                document.getElementById('placeCity').value = city;
-            }
-
-            // Try to auto-detect type from Google's place types
-            const placeTypes = place.types || [];
-            let detectedType = '';
-
-            if (placeTypes.includes('cafe') || placeTypes.includes('coffee_shop')) {
-                detectedType = 'Cafe';
-            } else if (placeTypes.includes('bar') || placeTypes.includes('night_club')) {
-                detectedType = 'Bar';
-            } else if (placeTypes.includes('restaurant') || placeTypes.includes('food')) {
-                detectedType = 'Restaurant';
+            // Generate Google Maps link from coordinates
+            if (coords && coords.length === 2) {
+                const mapsLink = `https://www.google.com/maps/search/?api=1&query=${coords[1]},${coords[0]}`;
+                document.getElementById('placeMapsLink').value = mapsLink;
             }
 
             if (detectedType) {
                 document.getElementById('placeType').value = detectedType;
             }
+
+            // Clear search input and results
+            document.getElementById('placeSearchInput').value = name;
+            resultsDiv.classList.remove('active');
         }
 
         // Modal functions
@@ -759,7 +881,8 @@
             // Reset form
             document.getElementById('addPlaceForm').reset();
             document.getElementById('placePreview').classList.remove('active');
-            document.getElementById('googlePlaceSearch').value = '';
+            document.getElementById('placeSearchInput').value = '';
+            document.getElementById('searchResults').classList.remove('active');
             selectedPlace = null;
         }
 
@@ -806,10 +929,8 @@
 
             loadPlaces();
 
-            // Initialize Google Places if API loaded before this script
-            if (window.google && window.google.maps) {
-                initGooglePlaces();
-            }
+            // Initialize Photon place search
+            setupPlaceSearch();
         });
 
         // Refresh data every 2 minutes
