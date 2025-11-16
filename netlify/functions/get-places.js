@@ -51,17 +51,25 @@ exports.handler = async function(event, context) {
     // Only include APPROVED places
     const places = data.records
       .filter(record => record.fields.Approved === true) // Only approved places
-      .map(record => ({
-        id: record.id,
-        Name: record.fields.Name || '',
-        Type: record.fields.Type || '',
-        City: record.fields.City || '',
-        Description: record.fields.Description || '',
-        GoogleMapsLink: record.fields['Google Maps Link'] || record.fields.GoogleMapsLink || '',
-        Notes: record.fields.Notes || '',
-        AddedBy: record.fields['Added By'] || record.fields.AddedBy || '',
-        Photo: record.fields.Photo && record.fields.Photo[0] ? record.fields.Photo[0].url : null
-      }));
+      .map(record => {
+        // Handle single-select fields which can be objects or strings
+        const typeField = record.fields.Type;
+        const typeValue = typeof typeField === 'object' && typeField !== null
+          ? typeField.name || ''
+          : typeField || '';
+
+        return {
+          id: record.id,
+          Name: record.fields.Name || '',
+          Type: typeValue,
+          City: record.fields.City || '',
+          Description: record.fields.Description || '',
+          GoogleMapsLink: record.fields['Google Maps Link'] || record.fields.GoogleMapsLink || '',
+          Notes: record.fields.Notes || '',
+          AddedBy: record.fields['Added By'] || record.fields.AddedBy || '',
+          Photo: record.fields.Photo && record.fields.Photo[0] ? record.fields.Photo[0].url : null
+        };
+      });
 
     // Return the data
     return {
