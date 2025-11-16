@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Favorite Places 🗺️</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #f59e0b;
+            --text-dark: #1f2937;
+            --text-light: #6b7280;
+            --bg-light: #f9fafb;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #1d4ed8 100%);
+            color: white;
+            padding: 2rem 1rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .filters {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .add-place-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .add-place-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .places-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .place-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .place-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .place-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+
+        .place-content {
+            padding: 1.5rem;
+        }
+
+        .place-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .place-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .place-type {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .place-city {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .place-description {
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .place-notes {
+            background-color: #fef3c7;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--secondary-color);
+            margin-bottom: 1rem;
+            font-style: italic;
+            color: #92400e;
+        }
+
+        .place-footer {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .place-btn {
+            flex: 1;
+            padding: 0.6rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            transition: background-color 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .btn-maps {
+            background-color: #10b981;
+            color: white;
+        }
+
+        .btn-maps:hover {
+            background-color: #059669;
+        }
+
+        .place-meta {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 4rem;
+            font-size: 1.2rem;
+            color: var(--text-light);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-light);
+        }
+
+        .no-results h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .places-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .filter-group {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🗺️ Our Favorite Places</h1>
+        <p>Great spots to eat, drink coffee, and enjoy wine</p>
+    </div>
+
+    <div class="container">
+        <!-- Filters -->
+        <div class="filters">
+            <div class="filter-group">
+                <label for="typeFilter">🍽️ Type</label>
+                <select id="typeFilter" onchange="filterPlaces()">
+                    <option value="all">All Types</option>
+                    <option value="Restaurant">🍕 Restaurant</option>
+                    <option value="Cafe">☕ Cafe</option>
+                    <option value="Bar">🍺 Bar</option>
+                    <option value="Wine Bar">🍷 Wine Bar</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="cityFilter">📍 City</label>
+                <select id="cityFilter" onchange="filterPlaces()">
+                    <option value="all">All Cities</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="searchInput">🔍 Search</label>
+                <input type="text" id="searchInput" placeholder="Search places..." oninput="filterPlaces()">
+            </div>
+
+            <div class="filter-group">
+                <label>&nbsp;</label>
+                <a href="#" id="addPlaceBtn" target="_blank" class="add-place-btn">
+                    ➕ Add a Place
+                </a>
+            </div>
+        </div>
+
+        <!-- Places Grid -->
+        <div id="placesGrid" class="places-grid">
+            <div class="loading">
+                🔄 Loading amazing places...
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Made with ❤️ for sharing great places with friends</p>
+        <p>Have a favorite spot? Click "Add a Place" above!</p>
+    </div>
+
+    <script>
+        // Type to emoji mapping
+        const typeEmojis = {
+            'Restaurant': '🍕',
+            'Cafe': '☕',
+            'Bar': '🍺',
+            'Wine Bar': '🍷',
+            'default': '🍽️'
+        };
+
+        let allPlaces = [];
+        let filteredPlaces = [];
+
+        // Your Airtable form URL - paste it here
+        const AIRTABLE_FORM_URL = 'YOUR_AIRTABLE_FORM_URL';  // Replace with your form URL
+
+        // Load places from our backend API
+        async function loadPlaces() {
+            try {
+                // This calls YOUR serverless function (backend)
+                // The backend has your secret token, not the frontend!
+                const response = await fetch('/.netlify/functions/get-places');
+                
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                allPlaces = data.places || [];
+
+                populateCityFilter();
+                filterPlaces();
+                
+            } catch (error) {
+                console.error('Error loading places:', error);
+                document.getElementById('placesGrid').innerHTML = `
+                    <div class="no-results">
+                        <h3>⚠️ Unable to load places</h3>
+                        <p>Make sure your backend is deployed correctly.</p>
+                        <p style="margin-top: 1rem; font-size: 0.9rem;">Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Populate city filter
+        function populateCityFilter() {
+            const cities = [...new Set(allPlaces.map(p => p.City).filter(c => c))].sort();
+            const cityFilter = document.getElementById('cityFilter');
+            
+            cityFilter.innerHTML = '<option value="all">All Cities</option>';
+            
+            cities.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                cityFilter.appendChild(option);
+            });
+        }
+
+        // Filter places
+        function filterPlaces() {
+            const typeFilter = document.getElementById('typeFilter').value;
+            const cityFilter = document.getElementById('cityFilter').value;
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            
+            filteredPlaces = allPlaces.filter(place => {
+                const matchesType = typeFilter === 'all' || place.Type === typeFilter;
+                const matchesCity = cityFilter === 'all' || place.City === cityFilter;
+                const matchesSearch = searchInput === '' || 
+                    place.Name.toLowerCase().includes(searchInput) ||
+                    (place.Description && place.Description.toLowerCase().includes(searchInput)) ||
+                    (place.City && place.City.toLowerCase().includes(searchInput));
+                
+                return matchesType && matchesCity && matchesSearch;
+            });
+            
+            displayPlaces();
+        }
+
+        // Display places
+        function displayPlaces() {
+            const grid = document.getElementById('placesGrid');
+            
+            if (filteredPlaces.length === 0) {
+                grid.innerHTML = `
+                    <div class="no-results">
+                        <h3>😔 No places found</h3>
+                        <p>Try adjusting your filters or add a new place!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = filteredPlaces.map(place => {
+                const emoji = typeEmojis[place.Type] || typeEmojis.default;
+                const mapsLink = place.GoogleMapsLink || 
+                    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.Name + ' ' + place.City)}`;
+                
+                return `
+                    <div class="place-card">
+                        ${place.Photo ? 
+                            `<img src="${place.Photo}" class="place-image" alt="${place.Name}">` :
+                            `<div class="place-image">${emoji}</div>`
+                        }
+                        <div class="place-content">
+                            <div class="place-header">
+                                <div>
+                                    <div class="place-name">${place.Name}</div>
+                                    <div class="place-city">📍 ${place.City}</div>
+                                </div>
+                                ${place.Type ? `<span class="place-type">${place.Type}</span>` : ''}
+                            </div>
+                            
+                            ${place.Description ? `<div class="place-description">${place.Description}</div>` : ''}
+                            
+                            ${place.Notes ? `<div class="place-notes">💡 ${place.Notes}</div>` : ''}
+                            
+                            <div class="place-footer">
+                                <a href="${mapsLink}" target="_blank" class="place-btn btn-maps">
+                                    🗺️ View on Maps
+                                </a>
+                            </div>
+                            
+                            ${place.AddedBy ? `
+                                <div class="place-meta">
+                                    ✨ Added by ${place.AddedBy}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            // Set up "Add a Place" button
+            const addBtn = document.getElementById('addPlaceBtn');
+            if (AIRTABLE_FORM_URL && AIRTABLE_FORM_URL !== 'YOUR_AIRTABLE_FORM_URL') {
+                addBtn.href = AIRTABLE_FORM_URL;
+            } else {
+                addBtn.style.display = 'none';
+            }
+            
+            loadPlaces();
+        });
+
+        // Refresh data every 2 minutes
+        setInterval(loadPlaces, 2 * 60 * 1000);
+    </script>
+</body>
+</html>
