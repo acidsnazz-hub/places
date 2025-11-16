@@ -611,6 +611,9 @@
                 const data = await response.json();
                 allPlaces = data.places || [];
 
+                // Debug: log the actual Type values from Airtable
+                console.log('Types from Airtable:', [...new Set(allPlaces.map(p => p.Type))]);
+
                 populateCityFilter();
                 filterPlaces();
                 
