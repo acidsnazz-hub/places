@@ -255,6 +255,151 @@
             font-size: 0.9rem;
         }
 
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+
+        .modal-close:hover {
+            color: var(--text-dark);
+        }
+
+        .modal h2 {
+            margin-bottom: 1.5rem;
+            color: var(--text-dark);
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-input-wrapper input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .search-input-wrapper input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .place-preview {
+            background: var(--bg-light);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .place-preview.active {
+            display: block;
+        }
+
+        .place-preview h3 {
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .place-preview p {
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .submit-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+
+        .submit-btn:hover {
+            background-color: #1d4ed8;
+        }
+
+        .submit-btn:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2rem;
@@ -327,6 +472,81 @@
         <p>Have a favorite spot? Click "Add a Place" above!</p>
     </div>
 
+    <!-- Add Place Modal -->
+    <div id="addPlaceModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <h2>Add a New Place</h2>
+
+            <div class="search-input-wrapper">
+                <input type="text" id="googlePlaceSearch" placeholder="Search for a place on Google Maps...">
+            </div>
+
+            <div id="placePreview" class="place-preview">
+                <h3 id="previewName"></h3>
+                <p id="previewAddress"></p>
+                <p id="previewRating"></p>
+            </div>
+
+            <form id="addPlaceForm">
+                <div class="form-group">
+                    <label for="placeName">Name *</label>
+                    <input type="text" id="placeName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="placeType">Type *</label>
+                    <select id="placeType" required>
+                        <option value="">Select type...</option>
+                        <option value="Restaurant">Restaurant</option>
+                        <option value="Cafe">Cafe</option>
+                        <option value="Bar">Bar</option>
+                        <option value="Wine Bar">Wine Bar</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="placeCity">City *</label>
+                    <input type="text" id="placeCity" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="placeDescription">Description</label>
+                    <textarea id="placeDescription" placeholder="What makes this place special?"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="placeMapsLink">Google Maps Link</label>
+                    <input type="url" id="placeMapsLink" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="placeNotes">Notes</label>
+                    <textarea id="placeNotes" placeholder="Any tips or recommendations?"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="placeAddedBy">Your Name *</label>
+                    <input type="text" id="placeAddedBy" required>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    Open in Airtable Form
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Google Places API -->
+    <script>
+        // IMPORTANT: Replace with your Google Maps API key
+        // Get one at: https://console.cloud.google.com/google/maps-apis
+        const GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY';
+    </script>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places&callback=initGooglePlaces">
+    </script>
+
     <script>
         // Type to emoji mapping
         const typeEmojis = {
@@ -392,18 +612,22 @@
             const typeFilter = document.getElementById('typeFilter').value;
             const cityFilter = document.getElementById('cityFilter').value;
             const searchInput = document.getElementById('searchInput').value.toLowerCase();
-            
+
             filteredPlaces = allPlaces.filter(place => {
-                const matchesType = typeFilter === 'all' || place.Type === typeFilter;
+                // Case-insensitive type matching with trimming
+                const placeType = (place.Type || '').trim().toLowerCase();
+                const filterType = typeFilter.toLowerCase();
+                const matchesType = typeFilter === 'all' || placeType === filterType;
+
                 const matchesCity = cityFilter === 'all' || place.City === cityFilter;
-                const matchesSearch = searchInput === '' || 
+                const matchesSearch = searchInput === '' ||
                     place.Name.toLowerCase().includes(searchInput) ||
                     (place.Description && place.Description.toLowerCase().includes(searchInput)) ||
                     (place.City && place.City.toLowerCase().includes(searchInput));
-                
+
                 return matchesType && matchesCity && matchesSearch;
             });
-            
+
             displayPlaces();
         }
 
@@ -462,17 +686,130 @@
             }).join('');
         }
 
+        // Google Places Autocomplete
+        let autocomplete;
+        let selectedPlace = null;
+
+        function initGooglePlaces() {
+            const input = document.getElementById('googlePlaceSearch');
+            if (input && window.google && window.google.maps) {
+                autocomplete = new google.maps.places.Autocomplete(input, {
+                    types: ['establishment'],
+                    fields: ['name', 'formatted_address', 'geometry', 'place_id', 'rating', 'types', 'url']
+                });
+
+                autocomplete.addListener('place_changed', onPlaceSelected);
+            }
+        }
+
+        function onPlaceSelected() {
+            const place = autocomplete.getPlace();
+            if (!place.geometry) {
+                return;
+            }
+
+            selectedPlace = place;
+
+            // Show preview
+            document.getElementById('previewName').textContent = place.name;
+            document.getElementById('previewAddress').textContent = place.formatted_address;
+            document.getElementById('previewRating').textContent = place.rating ? `Rating: ${place.rating}/5` : '';
+            document.getElementById('placePreview').classList.add('active');
+
+            // Auto-fill form fields
+            document.getElementById('placeName').value = place.name;
+            document.getElementById('placeMapsLink').value = place.url || `https://www.google.com/maps/place/?q=place_id:${place.place_id}`;
+
+            // Extract city from address
+            const addressParts = place.formatted_address.split(',');
+            if (addressParts.length >= 2) {
+                // Usually city is the second-to-last part (before country/postal code)
+                const cityPart = addressParts[addressParts.length - 2].trim();
+                // Remove postal codes if present
+                const city = cityPart.replace(/\d{4,}/g, '').trim();
+                document.getElementById('placeCity').value = city;
+            }
+
+            // Try to auto-detect type from Google's place types
+            const placeTypes = place.types || [];
+            let detectedType = '';
+
+            if (placeTypes.includes('cafe') || placeTypes.includes('coffee_shop')) {
+                detectedType = 'Cafe';
+            } else if (placeTypes.includes('bar') || placeTypes.includes('night_club')) {
+                detectedType = 'Bar';
+            } else if (placeTypes.includes('restaurant') || placeTypes.includes('food')) {
+                detectedType = 'Restaurant';
+            }
+
+            if (detectedType) {
+                document.getElementById('placeType').value = detectedType;
+            }
+        }
+
+        // Modal functions
+        function openModal() {
+            document.getElementById('addPlaceModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('addPlaceModal').classList.remove('active');
+            document.body.style.overflow = '';
+            // Reset form
+            document.getElementById('addPlaceForm').reset();
+            document.getElementById('placePreview').classList.remove('active');
+            document.getElementById('googlePlaceSearch').value = '';
+            selectedPlace = null;
+        }
+
+        // Close modal on backdrop click
+        document.getElementById('addPlaceModal').addEventListener('click', (e) => {
+            if (e.target.id === 'addPlaceModal') {
+                closeModal();
+            }
+        });
+
+        // Handle form submission - opens prefilled Airtable form
+        document.getElementById('addPlaceForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            // Build prefilled Airtable form URL
+            const params = new URLSearchParams();
+            params.append('prefill_Name', document.getElementById('placeName').value);
+            params.append('prefill_Type', document.getElementById('placeType').value);
+            params.append('prefill_City', document.getElementById('placeCity').value);
+            params.append('prefill_Description', document.getElementById('placeDescription').value);
+            params.append('prefill_Google Maps Link', document.getElementById('placeMapsLink').value);
+            params.append('prefill_Notes', document.getElementById('placeNotes').value);
+            params.append('prefill_Added By', document.getElementById('placeAddedBy').value);
+
+            const prefilledUrl = `${AIRTABLE_FORM_URL}?${params.toString()}`;
+            window.open(prefilledUrl, '_blank');
+
+            closeModal();
+        });
+
         // Initialize
         window.addEventListener('load', () => {
-            // Set up "Add a Place" button
+            // Set up "Add a Place" button to open modal instead of direct link
             const addBtn = document.getElementById('addPlaceBtn');
             if (AIRTABLE_FORM_URL && AIRTABLE_FORM_URL !== 'YOUR_AIRTABLE_FORM_URL') {
-                addBtn.href = AIRTABLE_FORM_URL;
+                addBtn.href = '#';
+                addBtn.onclick = (e) => {
+                    e.preventDefault();
+                    openModal();
+                };
             } else {
                 addBtn.style.display = 'none';
             }
-            
+
             loadPlaces();
+
+            // Initialize Google Places if API loaded before this script
+            if (window.google && window.google.maps) {
+                initGooglePlaces();
+            }
         });
 
         // Refresh data every 2 minutes
