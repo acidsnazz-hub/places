@@ -15,12 +15,13 @@
         }
 
         :root {
-            --primary: #000;
+            --primary: #111;
             --secondary: #666;
-            --accent: #000;
+            --accent: #2563eb;
+            --accent-light: #dbeafe;
             --bg: #fff;
-            --bg-secondary: #fafafa;
-            --border: #eaeaea;
+            --bg-secondary: #f8fafc;
+            --border: #e2e8f0;
             --radius: 8px;
             --radius-lg: 16px;
             --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
@@ -112,8 +113,8 @@
         .filter-group select:focus,
         .filter-group input:focus {
             outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         .filter-group input::placeholder {
@@ -125,8 +126,8 @@
             align-items: center;
             gap: 0.5rem;
             padding: 0.75rem 1.25rem;
-            background: var(--primary);
-            color: var(--bg);
+            background: var(--accent);
+            color: #fff;
             border: none;
             border-radius: var(--radius);
             font-size: 0.875rem;
@@ -134,12 +135,13 @@
             font-family: inherit;
             cursor: pointer;
             text-decoration: none;
-            transition: transform var(--transition), box-shadow var(--transition);
+            transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
         }
 
         .add-btn:hover {
             transform: translateY(-1px);
-            box-shadow: var(--shadow);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            background: #1d4ed8;
         }
 
         .add-btn:active {
@@ -193,10 +195,30 @@
             text-transform: uppercase;
             letter-spacing: 0.1em;
             padding: 0.25rem 0.5rem;
-            background: var(--bg-secondary);
+            background: var(--accent-light);
             border-radius: 4px;
             margin-bottom: 0.75rem;
-            color: var(--secondary);
+            color: var(--accent);
+        }
+
+        .place-type-badge[data-type="restaurant"] {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .place-type-badge[data-type="cafe"] {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+
+        .place-type-badge[data-type="bar"] {
+            background: #ffe4e6;
+            color: #be123c;
+        }
+
+        .place-type-badge[data-type="wine bar"] {
+            background: #fce7f3;
+            color: #be185d;
         }
 
         .place-name {
@@ -248,12 +270,13 @@
             font-size: 0.8125rem;
             font-weight: 500;
             text-decoration: none;
-            transition: background var(--transition), border-color var(--transition);
+            transition: background var(--transition), border-color var(--transition), color var(--transition);
         }
 
         .btn-maps:hover {
-            background: var(--border);
-            border-color: #ddd;
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--accent);
         }
 
         .place-meta {
@@ -363,7 +386,8 @@
 
         .search-input-wrapper input:focus {
             outline: none;
-            border-color: var(--primary);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         .search-results {
@@ -470,25 +494,27 @@
         .form-group input:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: var(--primary);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         .submit-btn {
             width: 100%;
             padding: 0.875rem;
-            background: var(--primary);
-            color: var(--bg);
+            background: var(--accent);
+            color: #fff;
             border: none;
             border-radius: var(--radius);
             font-size: 0.875rem;
             font-weight: 500;
             font-family: inherit;
             cursor: pointer;
-            transition: opacity var(--transition);
+            transition: background var(--transition), box-shadow var(--transition);
         }
 
         .submit-btn:hover {
-            opacity: 0.9;
+            background: #1d4ed8;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
         }
 
         .submit-btn:disabled {
@@ -761,7 +787,7 @@
                             `<div class="place-image"><span class="place-image-placeholder">${icon}</span></div>`
                         }
                         <div class="place-content">
-                            ${place.Type ? `<span class="place-type-badge">${place.Type}</span>` : ''}
+                            ${place.Type ? `<span class="place-type-badge" data-type="${place.Type.toLowerCase()}">${place.Type}</span>` : ''}
                             <h3 class="place-name">${place.Name}</h3>
                             <p class="place-city">${place.City}</p>
 
